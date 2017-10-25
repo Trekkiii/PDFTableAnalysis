@@ -1,4 +1,4 @@
->Fork from:git@github.com:rostrovsky/pdf-table.git
+_*Fork from:git@github.com:rostrovsky/pdf-table.git*_
 
 = PDF-table
 :toc:
