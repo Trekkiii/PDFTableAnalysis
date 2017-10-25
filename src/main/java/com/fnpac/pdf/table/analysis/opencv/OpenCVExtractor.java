@@ -1,15 +1,14 @@
 package com.fnpac.pdf.table.analysis.opencv;
 
 import com.fnpac.pdf.table.analysis.Settings;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.MatOfPoint;
-import org.opencv.core.Rect;
-import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.core.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import static org.opencv.core.Core.bitwise_xor;
+import static org.opencv.imgcodecs.Imgcodecs.imwrite;
 import static org.opencv.imgproc.Imgproc.*;
 
 /**
@@ -39,38 +38,125 @@ public class OpenCVExtractor {
      * <p>
      * 另外在{@code settings.hasDebugImages()}为true时转储debug PNG图像
      *
-     * @param inImage 灰度图像
+     * @param grayscaleMat 灰度图像
      * @return 表示单元格边界矩形的org.opencv.core.Rect对象的列表
      */
-    public List<Rect> getTableBoundingRectangles(Mat inImage) {
+    public List<Rect> getTableBoundingRectangles(Mat grayscaleMat) {
         List<Rect> out = new ArrayList<>();
 
         if (settings.hasDebugImages()) {// 输出灰度图像
-            Imgcodecs.imwrite(buildDebugFilename("original_grayscaled"), inImage);
+            imwrite(buildDebugFilename("original_grayscaled"), grayscaleMat);
         }
 
-        // 图像二值化
-        Mat bit = binaryInvertedThreshold(inImage);
+        /**
+         * 1. 图像二值化
+         */
+        Mat bit = binaryInvertedThreshold(grayscaleMat);
         if (settings.hasDebugImages()) {// 输出二值化图像
-            Imgcodecs.imwrite(buildDebugFilename("binary_inverted_threshold"), bit);
+            imwrite(buildDebugFilename("binary_inverted_threshold"), bit);
         }
 
-        // 查找轮廓
+        /**
+         * 2. 查找轮廓
+         */
         List<MatOfPoint> contours = new ArrayList<>();
         if (settings.hasCannyFiltering()) {
 
-            // 边缘检测
-            Mat canny = cannyFilter(inImage);
+            // 2.1 基于边缘检测图像
+            Mat canny = cannyFilter(grayscaleMat);
             if (settings.hasDebugImages()) {// 输出边缘检测图像
-                Imgcodecs.imwrite(buildDebugFilename("canny1"), canny);
+                imwrite(buildDebugFilename("canny1"), canny);
             }
 
-//            findContours(canny, contours, new Mat(), RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+
+            // Mat image：输入图像，必须为一个8位的二值图像
+            // List<MatOfPoint> contours：用于存储轮廓的容器
+            // Mat hierarchy：
+            //      hiararchy参数和轮廓个数相同，每个轮廓contours[ i ]对应4个hierarchy元素hierarchy[ i ][ 0 ] ~hierarchy[ i ][ 3 ]，分别表示后一个轮廓、前一个轮廓、父轮廓、内嵌轮廓的索引编号，如果没有对应项，该值设置为负数。
+            // int mode：轮廓检测的模式
+            //      RETR_EXTERNAL：只提取最外层的轮廓，查找外边缘，各边缘以指针h_next相连；
+            // int method：轮廓边缘的近似方法
+            //      CHAIN_APPROX_SIMPLE：压缩水平方向，垂直方向，对角线方向的元素，只保留该方向的终点坐标，例如一个矩形轮廓只需4个点来保存轮廓信息；
+            findContours(canny, contours, new Mat(), RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
         } else {
-//            findContours(bit, contours, new Mat(), RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+            // 2.2 基于二值化图像
+            findContours(bit, contours, new Mat(), RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
         }
 
-        // TODO
+        /**
+         * 3. 用`CV_FILLED`(填充轮廓内部)绘制轮廓，得到表格的蒙版(mask)
+         */
+        // Mat image：输入图像，函数将在这张图像上绘制轮廓
+        // List<MatOfPoint> contours： 轮廓链表
+        // int contourIdx：绘制轮廓的最大层数
+        // Scalar color：颜色
+        // int thickness：轮廓线的宽度，如果为`CV_FILLED`则会填充轮廓内部
+        Mat contourMask = bit.clone();
+        drawContours(contourMask, contours, -1, new Scalar(255, 255, 255), Core.FILLED);
+        if (settings.hasDebugImages()) {
+            imwrite(buildDebugFilename("contour_mask"), contourMask);
+        }
+
+        /**
+         * 4. 二值图像和表格的mask异或
+         */
+        Mat xored = new Mat();
+        bitwise_xor(bit, contourMask, xored);
+        if (settings.hasDebugImages()) {
+            imwrite(buildDebugFilename("xored"), xored);
+        }
+
+        /**
+         * 5. 对步骤4异或的结果再次进行边缘检测 #2
+         */
+        List<MatOfPoint> contours2 = new ArrayList<>();
+        if (settings.hasCannyFiltering()) {
+            Mat canny2 = cannyFilter(xored);
+            findContours(canny2, contours2, new Mat(), RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+            if (settings.hasDebugImages()) {
+                imwrite(buildDebugFilename("canny2"), canny2);
+            }
+        } else {
+            findContours(xored, contours2, new Mat(), RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
+        }
+        /**
+         * 6. 再次用`CV_FILLED`(填充轮廓内部)绘制轮廓 #2
+         */
+        if (settings.hasDebugImages()) {
+            Mat contourMask2 = grayscaleMat.clone();
+            drawContours(contourMask2, contours2, -1, new Scalar(255, 255, 255), Core.FILLED);
+            imwrite(buildDebugFilename("final_contours"), contourMask2);
+        }
+
+        /**
+         * 7. 计算轮廓的边界矩形或旋转矩形
+         */
+        for (int i = 0; i < contours2.size(); i++) {
+            MatOfPoint2f approxCurve = new MatOfPoint2f();
+
+            MatOfPoint2f contour2f = new MatOfPoint2f(contours2.get(i).toArray());
+            double approxDistance = arcLength(contour2f, true) * settings.getApproxDistScaleFactor();
+            approxPolyDP(contour2f, approxCurve, approxDistance, true);
+
+            MatOfPoint points = new MatOfPoint(approxCurve.toArray());
+            Rect rect = boundingRect(points);
+            out.add(rect);
+        }
+
+        Collections.reverse(out);
+
+        if (settings.hasDebugImages()) {
+            int index = 0;
+            for (Rect rect : out) {
+                Mat outImage = grayscaleMat.clone();
+
+                Point p1 = new Point(rect.x, rect.y);
+                Point p2 = new Point(rect.x + rect.width, rect.y + rect.height);
+                rectangle(outImage, p1, p2, new Scalar(0, 0, 0, 255), 3);
+                imwrite(buildDebugFilename(String.format("box_%03d", index)), outImage);
+                index++;
+            }
+        }
 
         return out;
     }

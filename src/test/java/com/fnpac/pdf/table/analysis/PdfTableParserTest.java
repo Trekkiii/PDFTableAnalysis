@@ -16,8 +16,8 @@ import java.nio.file.Paths;
  */
 public class PdfTableParserTest {
 
-    private static final String TEST_FILENAME = "test_tables.pdf";
-    // D:\tmp\pdf_tests
+    private static final String TEST_FILENAME = "D47553415415.pdf";
+    //    private static final Path TEST_OUT_PATH = Paths.get(System.getProperty("user.home"), "worktmp", "pdf_table", "pdf_tests");
     private static final Path TEST_OUT_PATH = Paths.get("D:", "tmp", "pdf_tests");
     private static PDDocument PDFdoc;
 
@@ -47,12 +47,18 @@ public class PdfTableParserTest {
     @Test
     public void savePdfPagesAsPNG() throws IOException {
         PdfTableParser parser = new PdfTableParser();
-        parser.savePdfPagesAsPNG(PDFdoc, 1, 3, TEST_OUT_PATH);
+        parser.savePdfPagesAsPNG(PDFdoc, 1, 1, TEST_OUT_PATH);
     }
 
     @Test
     public void savePdfDebugImages() throws IOException {
         PdfTableParser parser = new PdfTableParser();
-        parser.savePdfPagesDebugImages(PDFdoc, 1, 3, TEST_OUT_PATH);
+        parser.savePdfPageDebugImage(PDFdoc, 1, TEST_OUT_PATH);
+    }
+
+    @Test
+    public void parsePdfPages() throws IOException {
+        PdfTableParser parser = new PdfTableParser();
+        parser.parsePdfPages(PDFdoc, 1, 1);
     }
 }
