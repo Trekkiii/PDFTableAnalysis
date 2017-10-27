@@ -16,7 +16,7 @@ import java.nio.file.Paths;
  */
 public class PdfTableParserTest {
 
-    private static final String TEST_FILENAME = "D47553415415.pdf";
+    private static final String TEST_FILENAME = "test_tables.pdf";
     //    private static final Path TEST_OUT_PATH = Paths.get(System.getProperty("user.home"), "worktmp", "pdf_table", "pdf_tests");
     private static final Path TEST_OUT_PATH = Paths.get("D:", "tmp", "pdf_tests");
     private static PDDocument PDFdoc;
