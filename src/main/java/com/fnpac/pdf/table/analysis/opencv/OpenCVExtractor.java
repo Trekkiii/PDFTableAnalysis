@@ -22,7 +22,7 @@ public class OpenCVExtractor {
     static {
         // 加载图像处理库
         nu.pattern.OpenCV.loadShared();
-        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+//        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
 
     public OpenCVExtractor(Settings settings) {
