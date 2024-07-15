@@ -1,6 +1,6 @@
 ## 前言
 
-相关OpenCV API，请查看[OpenCV.md](https://github.com/fnpac/pdf-table-analysis/tree/master/src/main/java/com/fnpac/pdf/table/analysis/opencv/OpenCV.md)
+相关OpenCV API，请查看[OpenCV.md](https://github.com/Trekkiii/pdf-table-analysis/tree/master/src/main/java/com/fnpac/pdf/table/analysis/opencv/OpenCV.md)
 
 ## 算法
 
@@ -33,4 +33,3 @@
    
     Rotated rect:
     ![](../../../../../../../../../images/qoMCo.jpg) 
-    
