@@ -1,6 +1,6 @@
-package com.fnpac.pdf.table.analysis.opencv;
+package com.trekkiii.pdf.table.analysis.opencv;
 
-import com.fnpac.pdf.table.analysis.Settings;
+import com.trekkiii.pdf.table.analysis.Settings;
 import org.opencv.core.*;
 
 import java.util.ArrayList;

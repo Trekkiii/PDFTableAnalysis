@@ -1,7 +1,7 @@
-package com.fnpac.pdf.table.analysis;
+package com.trekkiii.pdf.table.analysis;
 
-import com.fnpac.pdf.table.analysis.models.ParsedTablePage;
-import com.fnpac.pdf.table.analysis.opencv.OpenCVExtractor;
+import com.trekkiii.pdf.table.analysis.models.ParsedTablePage;
+import com.trekkiii.pdf.table.analysis.opencv.OpenCVExtractor;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.rendering.ImageType;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import static com.fnpac.pdf.table.analysis.utils.Utils.bufferedImage2GrayscaleMat;
+import static com.trekkiii.pdf.table.analysis.utils.Utils.bufferedImage2GrayscaleMat;
 
 /**
  * Created by 刘春龙 on 2017/10/24.

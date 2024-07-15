@@ -1,4 +1,4 @@
-package com.fnpac.pdf.table.analysis.models;
+package com.trekkiii.pdf.table.analysis.models;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 

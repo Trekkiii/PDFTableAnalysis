@@ -1,4 +1,4 @@
-package com.fnpac.pdf.table.analysis;
+package com.trekkiii.pdf.table.analysis;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.testng.TestException;

@@ -1,4 +1,4 @@
-package com.fnpac.pdf.table.analysis.utils;
+package com.trekkiii.pdf.table.analysis.utils;
 
 import org.apache.pdfbox.io.IOUtils;
 import org.opencv.core.Mat;

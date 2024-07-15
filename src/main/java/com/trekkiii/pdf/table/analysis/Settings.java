@@ -1,4 +1,4 @@
-package com.fnpac.pdf.table.analysis;
+package com.trekkiii.pdf.table.analysis;
 
 import java.nio.file.Path;
 
